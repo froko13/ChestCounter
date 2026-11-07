@@ -1,0 +1,18 @@
+{
+  "session_chests": 284,
+  "total_chests": 3496,
+  "goal_chests": 5000,
+  "threshold": 0.76,
+  "cooldown_sec": 2.4,
+  "roi": {
+    "left": 1080,
+    "top": 180,
+    "width": 520,
+    "height": 340
+  },
+  "hotkeys": {
+    "increment": "f9",
+    "decrement": "f10",
+    "reset_session": "f11"
+  }
+}

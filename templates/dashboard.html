@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Fortnite Chest Tracker — Панель управления</title>
+    <style>
+        :root {
+            --bg: #0c0f1d;
+            --card: #151a30;
+            --border: #2a3258;
+            --accent: #ffcc00;
+            --purple: #b845ff;
+            --text: #f0f4ff;
+            --muted: #8e98c0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            padding: 28px;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .badge-safe {
+            background: rgba(16, 185, 129, 0.18);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 99px;
+        }
+        .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+        }
+        .card h2 {
+            font-size: 16px;
+            margin-bottom: 14px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        .preview-box {
+            background: radial-gradient(circle at center, #1f2747 0%, #0d1021 100%);
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            height: 165px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+        iframe {
+            width: 410px;
+            height: 145px;
+            border: none;
+        }
+        .btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-weight: 600;
+            font-size: 13px;
+            transition: opacity 0.15s, transform 0.1s;
+        }
+        button:active { transform: scale(0.97); }
+        .btn-gold { background: var(--accent); color: #111; }
+        .btn-purple { background: var(--purple); color: #fff; }
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .stat-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-size: 14px;
+        }
+        .code-box {
+            background: #080a14;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-family: Consolas, monospace;
+            font-size: 13px;
+            color: #60a5fa;
+            margin: 8px 0;
+            user-select: all;
+        }
+        .form-group {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        input[type="number"] {
+            background: #090c17;
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            width: 90px;
+        }
+    </style>
+</head>
+<body>
+    <h1>
+        Fortnite Chest Tracker
+        <span class="badge-safe">100% Safe (OBS Screen Reader)</span>
+    </h1>
+    <p class="subtitle">Автоматическое распознавание открытия сундука по всплывающему опыту (+XP CHEST) на 1920x1080</p>
+
+    <div class="grid">
+        <div class="card">
+            <h2>Предпросмотр виджета OBS</h2>
+            <div class="preview-box">
+                <iframe src="/widget"></iframe>
+            </div>
+            <div class="btn-row">
+                <button class="btn-gold" onclick="sendAction('increment')">+1 Сундук (Тест анимации)</button>
+                <button class="btn-outline" onclick="sendAction('decrement')">-1 Сундук</button>
+                <button class="btn-outline" onclick="sendAction('reset_session')">Сбросить сессию</button>
+            </div>
+            <p style="font-size: 12px; color: var(--muted); margin-top: 14px;">
+                Ссылка для вставки в OBS (<b>Источники → Браузер</b>, размер <code>420x160</code>):
+            </p>
+            <div class="code-box">http://localhost:5050/widget</div>
+        </div>
+
+        <div class="card">
+            <h2>Статус детектора и настройки</h2>
+            <div class="stat-line">
+                <span>Статус авто-сканера:</span>
+                <strong id="scannerStatus" style="color: #34d399;">Активен</strong>
+            </div>
+            <div class="stat-line">
+                <span>Текущее совпадение (Live Match):</span>
+                <strong id="liveScore">0.00</strong>
+            </div>
+            <div class="stat-line">
+                <span>Горячие клавиши в игре:</span>
+                <span><code>F9</code> (+1), <code>F10</code> (-1), <code>F11</code> (Сброс)</span>
+            </div>
+
+            <div class="form-group">
+                <label>Цель сундуков за стрим (GOAL):</label>
+                <input type="number" id="goalInput" value="100" min="1" max="10000">
+            </div>
+            <div class="form-group">
+                <label>Порог срабатывания (0.65 - 0.90):</label>
+                <input type="number" id="thresholdInput" value="0.76" step="0.02" min="0.5" max="0.98">
+            </div>
+
+            <div class="btn-row" style="margin-top: 16px;">
+                <button class="btn-purple" onclick="saveSettings()">Сохранить настройки</button>
+                <button class="btn-outline" onclick="sendAction('toggle_scanner')">Пауза / Старт сканера</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function sendAction(action, extra = {}) {
+            await fetch('/api/action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action, ...extra })
+            });
+            updateStatus();
+        }
+
+        async function saveSettings() {
+            const goal_chests = parseInt(document.getElementById('goalInput').value, 10) || 100;
+            const threshold = parseFloat(document.getElementById('thresholdInput').value) || 0.76;
+            await sendAction('update_settings', { goal_chests, threshold });
+        }
+
+        let initialized = false;
+        async function updateStatus() {
+            try {
+                const res = await fetch('/api/state');
+                const data = await res.json();
+                const st = document.getElementById('scannerStatus');
+                st.textContent = data.scanner_active ? 'Активен (20 FPS)' : 'На паузе';
+                st.style.color = data.scanner_active ? '#34d399' : '#fbbf24';
+                document.getElementById('liveScore').textContent = `${data.last_score} (порог: ${data.threshold})`;
+
+                if (!initialized) {
+                    document.getElementById('goalInput').value = data.goal_chests;
+                    document.getElementById('thresholdInput').value = data.threshold;
+                    initialized = true;
+                }
+            } catch (e) {}
+        }
+
+        setInterval(updateStatus, 400);
+        updateStatus();
+    </script>
+</body>
+</html>

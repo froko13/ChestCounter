@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Fortnite Chest Counter Widget</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,700;1,700&family=Teko:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background: transparent;
+            overflow: hidden;
+            font-family: 'Chakra Petch', sans-serif;
+            padding: 18px;
+        }
+
+        .widget-card {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: 370px;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, rgba(16, 20, 38, 0.92) 0%, rgba(30, 18, 58, 0.92) 100%);
+            border: 2px solid rgba(255, 206, 48, 0.75);
+            border-radius: 16px;
+            box-shadow:
+                0 10px 28px rgba(0, 0, 0, 0.65),
+                0 0 18px rgba(255, 196, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transform: skewX(-4deg);
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                        border-color 0.25s ease,
+                        box-shadow 0.25s ease;
+        }
+
+        .widget-card.pulse-open {
+            transform: skewX(-4deg) scale(1.06);
+            border-color: #ffe600;
+            box-shadow:
+                0 12px 32px rgba(0, 0, 0, 0.8),
+                0 0 34px rgba(255, 215, 0, 0.85),
+                0 0 60px rgba(190, 75, 255, 0.55);
+        }
+
+        /* Иконка сундука с золотым свечением */
+        .chest-icon-wrap {
+            position: relative;
+            width: 68px;
+            height: 68px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle, rgba(255, 200, 0, 0.32) 0%, rgba(255, 140, 0, 0.04) 70%);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 210, 60, 0.4);
+            transform: skewX(4deg);
+        }
+
+        .chest-svg {
+            width: 54px;
+            height: 54px;
+            filter: drop-shadow(0 0 10px rgba(255, 195, 0, 0.65));
+            transition: transform 0.3s ease;
+        }
+
+        .widget-card.pulse-open .chest-svg {
+            animation: chestShake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+        }
+
+        @keyframes chestShake {
+            0% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.22) rotate(-8deg); }
+            50% { transform: scale(1.25) rotate(8deg); }
+            75% { transform: scale(1.12) rotate(-4deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        /* Всплывающий +1 / +XP бейдж */
+        .xp-popup {
+            position: absolute;
+            top: -12px;
+            right: 16px;
+            background: linear-gradient(90deg, #b535ff, #ff35c8);
+            color: #ffffff;
+            font-weight: 700;
+            font-style: italic;
+            font-size: 13px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.8px;
+            box-shadow: 0 0 14px rgba(209, 53, 255, 0.9);
+            opacity: 0;
+            transform: translateY(10px) scale(0.8);
+            pointer-events: none;
+        }
+
+        .xp-popup.show {
+            animation: floatXp 1.3s ease-out forwards;
+        }
+
+        @keyframes floatXp {
+            0% { opacity: 0; transform: translateY(8px) scale(0.75); }
+            20% { opacity: 1; transform: translateY(-4px) scale(1.08); }
+            75% { opacity: 1; transform: translateY(-10px) scale(1); }
+            100% { opacity: 0; transform: translateY(-18px) scale(0.9); }
+        }
+
+        /* Текстовый блок */
+        .info-col {
+            flex: 1;
+            transform: skewX(4deg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .label-top {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #ffcf40;
+            text-shadow: 0 0 8px rgba(255, 207, 64, 0.45);
+            margin-bottom: -4px;
+        }
+
+        .counter-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .main-count {
+            font-family: 'Teko', sans-serif;
+            font-size: 52px;
+            line-height: 0.95;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow:
+                0 2px 0 #000,
+                0 0 16px rgba(255, 215, 0, 0.55);
+        }
+
+        .sub-stats {
+            font-size: 12px;
+            color: rgba(215, 220, 240, 0.85);
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .sub-stats span {
+            color: #d67dff;
+        }
+
+        /* Прогресс-бар до цели */
+        .progress-track {
+            width: 100%;
+            height: 7px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ffb800 0%, #ffe600 55%, #d442ff 100%);
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(255, 208, 0, 0.8);
+            transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+    </style>
+</head>
+<body>
+    <div class="widget-card" id="widgetCard">
+        <div class="xp-popup" id="xpPopup">+1 CHEST!</div>
+
+        <div class="chest-icon-wrap">
+            <!-- Векторная иконка легендарного сундука Fortnite -->
+            <svg class="chest-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Свечение позади -->
+                <circle cx="32" cy="32" r="26" fill="url(#glowGrad)" opacity="0.45"/>
+                <!-- Основание сундука -->
+                <rect x="10" y="28" width="44" height="24" rx="4" fill="url(#woodGrad)" stroke="#FFD700" stroke-width="2.5"/>
+                <!-- Крышка сундука -->
+                <path d="M8 28C8 19.5 15 14 32 14C49 14 56 19.5 56 28H8Z" fill="url(#lidGrad)" stroke="#FFE55C" stroke-width="2.5"/>
+                <!-- Золотые полосы -->
+                <rect x="18" y="15" width="5" height="37" fill="#FFD700" opacity="0.9"/>
+                <rect x="41" y="15" width="5" height="37" fill="#FFD700" opacity="0.9"/>
+                <!-- Центральный замок с кристаллом -->
+                <rect x="26" y="23" width="12" height="14" rx="3" fill="#FFF3B0" stroke="#B8860B" stroke-width="2"/>
+                <circle cx="32" cy="30" r="3.5" fill="#D946EF"/>
+                <defs>
+                    <radialGradient id="glowGrad" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(32 32) scale(26)">
+                        <stop stop-color="#FFE600"/>
+                        <stop offset="1" stop-color="#FF9900" stop-opacity="0"/>
+                    </radialGradient>
+                    <linearGradient id="woodGrad" x1="32" y1="28" x2="32" y2="52" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#9A5B13"/>
+                        <stop offset="1" stop-color="#4A2505"/>
+                    </linearGradient>
+                    <linearGradient id="lidGrad" x1="32" y1="14" x2="32" y2="28" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#F59E0B"/>
+                        <stop offset="1" stop-color="#B45309"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+        </div>
+
+        <div class="info-col">
+            <div class="label-top">CHESTS OPENED</div>
+            <div class="counter-row">
+                <div class="main-count" id="sessionCount">0</div>
+                <div class="sub-stats">
+                    GOAL: <span id="goalCount">0/100</span><br>
+                    TOTAL: <span id="totalCount">0</span>
+                </div>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let lastEventId = null;
+
+        function triggerOpenAnimation() {
+            const card = document.getElementById('widgetCard');
+            const popup = document.getElementById('xpPopup');
+
+            card.classList.remove('pulse-open');
+            popup.classList.remove('show');
+            void card.offsetWidth; // reflow
+
+            card.classList.add('pulse-open');
+            popup.classList.add('show');
+
+            setTimeout(() => {
+                card.classList.remove('pulse-open');
+            }, 650);
+        }
+
+        async function pollState() {
+            try {
+                const res = await fetch('/api/state', { cache: 'no-store' });
+                if (!res.ok) return;
+                const data = await res.json();
+
+                document.getElementById('sessionCount').textContent = data.session_chests;
+                document.getElementById('totalCount').textContent = data.total_chests;
+                document.getElementById('goalCount').textContent = `${data.session_chests}/${data.goal_chests}`;
+
+                const pct = Math.min(100, Math.round((data.session_chests / Math.max(1, data.goal_chests)) * 100));
+                document.getElementById('progressBar').style.width = pct + '%';
+
+                if (lastEventId !== null && data.event_id > lastEventId) {
+                    triggerOpenAnimation();
+                }
+                lastEventId = data.event_id;
+            } catch (e) {
+                // Игнорируем временные ошибки сети при перезапуске
+            }
+        }
+
+        setInterval(pollState, 250);
+        pollState();
+    </script>
+</body>
+</html>
